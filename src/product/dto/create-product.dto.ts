@@ -1,30 +1,33 @@
-import { IsEmpty, IsMongoId, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductDto {
-	@IsString()
-	@IsNotEmpty()
-	name: string
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-	@IsString()
-	@IsNotEmpty()
-	title: string
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 
-	@IsString()
-	@IsNotEmpty()
-	shortDescription: string
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  shortDescription: string;
 
-	@IsString()
-	@IsNotEmpty()
-	description: string
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-	@IsOptional()
-	@IsString()
-	imageLink?: string
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  base64Image: string;
 
-	@IsOptional()
-	@IsString()
-	videoLink?: string
-
-	@IsMongoId()
-  	category: string;
+  @ApiProperty()
+  @IsMongoId()
+  category: string;
 }

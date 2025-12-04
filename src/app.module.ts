@@ -8,17 +8,18 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { CategoryModule } from './category/category.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    DatabaseModule, 
-    ProductModule, 
-    BlogModule, 
-    AuthModule, 
-    UserModule, CategoryModule],
+    DatabaseModule,
+    ProductModule,
+    BlogModule,
+    AuthModule,
+    UserModule,
+    CategoryModule,
+  ],
   controllers: [UserController],
   providers: [],
 })

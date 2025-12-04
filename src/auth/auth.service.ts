@@ -1,71 +1,78 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/user/dto';
 import { User } from 'src/user/interfaces';
-import * as argon2 from "argon2";
+import * as argon2 from 'argon2';
 import { SigninDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserResponse } from 'src/user/interfaces/user-response.interface';
-const JWT_EXPIRESIN = '15m'
+const JWT_EXPIRESIN = '15m';
 
 @Injectable()
 export class AuthService {
-	constructor(
-		@Inject('USER_MODEL')
-		private userModel: Model<User>,
-		private jwt: JwtService,
-		private config: ConfigService,
-	) {}
+  constructor(
+    @Inject('USER_MODEL')
+    private userModel: Model<User>,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {}
 
-	async signup(createUserDto: CreateUserDto): Promise<UserResponse> {
-		const user = await this.userModel
-		.findOne()
-		.where('email')
-		.equals(createUserDto.email)
-		.exec()
-		if (user) throw new ForbiddenException('user email taken');
-		const createdUser = new this.userModel({ 
-			email: createUserDto.email,
-			password: await argon2.hash(createUserDto.password)
-		});
-		await createdUser.save()
+  async signup(createUserDto: CreateUserDto): Promise<UserResponse> {
+    const user = await this.userModel
+      .findOne()
+      .where('email')
+      .equals(createUserDto.email)
+      .exec();
+    if (user) throw new ForbiddenException('user email taken');
+    const createdUser = new this.userModel({
+      email: createUserDto.email,
+      password: await argon2.hash(createUserDto.password),
+    });
+    await createdUser.save();
 
-		const userObj = createdUser.toObject();
-		delete userObj.password;
-		
-		return userObj;
-	}
+    const userObj = createdUser.toObject();
+    delete userObj.password;
 
-	async signin(signinDto: SigninDto): Promise<{ token: string }> {
-		const user = await this.userModel
-		.findOne()
-		.where('email')
-		.equals(signinDto.email)
-		.exec()
+    return userObj;
+  }
 
-		if (!user) throw new BadRequestException('incorrect details')
-		const checkPassword = await argon2.verify(user.password, signinDto.password)
+  async signin(signinDto: SigninDto): Promise<{ token: string }> {
+    const user = await this.userModel
+      .findOne()
+      .where('email')
+      .equals(signinDto.email)
+      .exec();
 
-		if (!checkPassword) throw new BadRequestException('incorrect details');
+    if (!user) throw new BadRequestException('incorrect details');
+    const checkPassword = await argon2.verify(
+      user.password,
+      signinDto.password,
+    );
 
-		return await this.signToken(user.id, user.email);
-	}
+    if (!checkPassword) throw new BadRequestException('incorrect details');
 
+    return await this.signToken(user.id, user.email);
+  }
 
-	async signToken(id: number, email:string): Promise<{token: string}> {
-		const payload = {
-			sub: id,
-			email,
-		}
+  async signToken(id: number, email: string): Promise<{ token: string }> {
+    const payload = {
+      sub: id,
+      email,
+    };
 
-		const token = await this.jwt.signAsync(payload, {
-			expiresIn: JWT_EXPIRESIN,
-			secret: this.config.get('JWT_SECRET'),
-		})
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: JWT_EXPIRESIN,
+      secret: this.config.get('JWT_SECRET'),
+    });
 
-		return {
-			token,
-		};
-	}
+    return {
+      token,
+    };
+  }
 }
