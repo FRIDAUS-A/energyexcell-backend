@@ -21,6 +21,9 @@ async function bootstrap() {
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, documentFactory);
+  app.getHttpAdapter().get('/openapi.json', (req, res) => {
+    res.json(documentFactory());
+  });
   await app.listen(3000);
 }
 bootstrap();
