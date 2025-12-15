@@ -76,9 +76,9 @@ export class CreateProductDto {
   description: string;
 
   @ApiProperty()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  imageLink: string;
+  base64Image: string;
 
   @ApiProperty()
   @IsOptional()

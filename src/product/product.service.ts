@@ -9,12 +9,15 @@ import { Model } from 'mongoose';
 import { Product } from './interfaces/product.interface';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { Types } from 'mongoose';
+import { uploadBase64Image } from 'src/services/uploadBase64';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProductService {
   constructor(
     @Inject('PRODUCT_MODEL')
     private productModel: Model<Product>,
+    private config: ConfigService,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -25,7 +28,22 @@ export class ProductService {
       .exec();
 
     if (product) throw new ForbiddenException('product name taken');
-    const createdProduct = new this.productModel(createProductDto);
+    const { base64Image } = createProductDto;
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(base64Image)) {
+      throw new BadRequestException(
+        'Invalid file type. Only PNG or JPEG images are allowed.',
+      );
+    }
+    const imageLink = await uploadBase64Image(
+      base64Image,
+      this.config.get('GOOGLE_APPLICATION_CREDENTIALS'),
+      this.config.get('GCLOUD_BUCKET'),
+    );
+    delete createProductDto.base64Image;
+    const createdProduct = new this.productModel({
+      ...createProductDto,
+      imageLink,
+    });
 
     return await createdProduct.save();
   }
